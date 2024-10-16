@@ -1,7 +1,19 @@
 #!/bin/bash -e
 
+# Check if NDK exists and is a valid directory first
+if [ -z "$ANDROID_NDK_PATH" ]; then
+    echo "Error: ANDROID_NDK_PATH unset" >&2
+    echo "Please set ANDROID_NDK_PATH to your NDK path" >&2
+    exit 1
+fi
+
+if [ ! -d "$ANDROID_NDK_PATH" ]; then
+    echo "Error: NDK directory does not exist: $ANDROID_NDK_PATH" >&2
+    echo "Please correctly set env variable ANDROID_NDK_PATH to your NDK path" >&2
+    exit 1
+fi
+
 WORK_PATH=$(cd "$(dirname "$0")";pwd)
-ANDROID_NDK_PATH=${WORK_PATH}/android-ndk-r20b
 OPENSSL_SOURCES_PATH=${WORK_PATH}/openssl-3.3.2
 ANDROID_TARGET_API=$1
 ANDROID_TARGET_ABI=$2
@@ -15,15 +27,7 @@ cp -r ${OPENSSL_SOURCES_PATH}/* ${OPENSSL_TMP_FOLDER}
 
 function build_library {
     mkdir -p ${OUTPUT_PATH}
-    make && make install
-    rm -rf ${OPENSSL_TMP_FOLDER}
-    rm -rf ${OUTPUT_PATH}/bin
-    rm -rf ${OUTPUT_PATH}/share
-    rm -rf ${OUTPUT_PATH}/ssl
-    rm -rf ${OUTPUT_PATH}/lib/cmake
-    rm -rf ${OUTPUT_PATH}/lib/engines*
-    rm -rf ${OUTPUT_PATH}/lib/pkgconfig
-    rm -rf ${OUTPUT_PATH}/lib/ossl-modules
+    make && make install_sw
     echo "Build completed! Check output libraries in ${OUTPUT_PATH}"
 }
 
